@@ -8,6 +8,8 @@ export const TeamCalendarView = ({ calendarData }) => {
   if (!calendarData || !calendarData.dates) return null;
 
   const { dates, matrix } = calendarData;
+  const today = new Date();
+  const todayStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
   const formatDayHeader = (dateStr) => {
     const d = new Date(dateStr);
@@ -67,7 +69,7 @@ export const TeamCalendarView = ({ calendarData }) => {
             </th>
             {dates.map((d) => {
               const { dayName, dayNum } = formatDayHeader(d);
-              const isToday = d === '2026-08-18';
+              const isToday = d === todayStr;
               return (
                 <th
                   key={d}

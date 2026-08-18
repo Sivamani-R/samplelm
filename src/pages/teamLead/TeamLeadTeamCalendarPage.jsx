@@ -15,7 +15,17 @@ export const TeamLeadTeamCalendarPage = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await teamService.fetchTeamCalendar('2026-08-16', '2026-08-31');
+      
+      const start = new Date();
+      start.setDate(start.getDate() - 3);
+      const end = new Date();
+      end.setDate(end.getDate() + 12);
+      
+      const startLocal = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      const endLocal = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      
+      const data = await teamService.fetchTeamCalendar(startLocal, endLocal);
+      
       setCalendarData(data);
     } catch (err) {
       setError(err.message || 'Unable to load team calendar.');

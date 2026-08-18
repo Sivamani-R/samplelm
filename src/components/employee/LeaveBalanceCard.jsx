@@ -19,8 +19,9 @@ export const LeaveBalanceCard = ({ balance, onApply = null }) => {
   };
   const basePath = getBasePath();
 
-  const percentAvailable = balance.annualEntitlement > 0
-    ? Math.min(100, Math.round((balance.closingBalance / balance.annualEntitlement) * 100))
+  const totalEarned = (balance.openingBalance || 0) + (balance.accrued || 0);
+  const percentAvailable = totalEarned > 0
+    ? Math.min(100, Math.max(0, Math.round((balance.closingBalance / totalEarned) * 100)))
     : 100;
 
   return (
@@ -61,7 +62,7 @@ export const LeaveBalanceCard = ({ balance, onApply = null }) => {
               {balance.closingBalance}
             </span>
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              / {balance.annualEntitlement} days available
+              / {totalEarned} days available
             </span>
           </div>
 
@@ -91,8 +92,8 @@ export const LeaveBalanceCard = ({ balance, onApply = null }) => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: '8px',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '6px',
             padding: '10px',
             backgroundColor: 'var(--bg-surface-secondary)',
             borderRadius: 'var(--radius-md)',
@@ -101,6 +102,18 @@ export const LeaveBalanceCard = ({ balance, onApply = null }) => {
             marginBottom: '14px'
           }}
         >
+          <div>
+            <div style={{ color: 'var(--text-secondary)' }}>Opening</div>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
+              {balance.openingBalance} d
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-secondary)' }}>Accrued</div>
+            <div style={{ fontWeight: 700, color: 'var(--info-blue)', marginTop: '2px' }}>
+              +{balance.accrued} d
+            </div>
+          </div>
           <div>
             <div style={{ color: 'var(--text-secondary)' }}>Used</div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)', marginTop: '2px' }}>
@@ -111,12 +124,6 @@ export const LeaveBalanceCard = ({ balance, onApply = null }) => {
             <div style={{ color: 'var(--text-secondary)' }}>Pending</div>
             <div style={{ fontWeight: 700, color: 'var(--status-warning-text)', marginTop: '2px' }}>
               {balance.pending} d
-            </div>
-          </div>
-          <div>
-            <div style={{ color: 'var(--text-secondary)' }}>Accrued</div>
-            <div style={{ fontWeight: 700, color: 'var(--info-blue)', marginTop: '2px' }}>
-              +{balance.accrued} d
             </div>
           </div>
         </div>

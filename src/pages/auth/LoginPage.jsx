@@ -19,7 +19,7 @@ export const LoginPage = () => {
   const [apiError, setApiError] = useState(null);
 
   const DEMO_ACCOUNTS = [
-    { role: 'ADMIN', id: 'admin@enterprise.com', pass: 'admin123', label: 'Admin (Devin Vance)' },
+    { role: 'ADMIN', id: 'admin@enterprise.com', pass: 'password123', label: 'Admin (Devin Vance)' },
     { role: 'MANAGER', id: 'arun.k@enterprise.com', pass: 'password123', label: 'Manager (Arun Kumar)' },
     { role: 'TEAM_LEAD', id: 'priya.s@enterprise.com', pass: 'password123', label: 'Team Lead (Priya Sharma)' },
     { role: 'EMPLOYEE', id: 'john.doe@enterprise.com', pass: 'password123', label: 'Employee (John Doe)' }

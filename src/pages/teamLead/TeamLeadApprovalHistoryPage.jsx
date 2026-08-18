@@ -75,19 +75,22 @@ export const TeamLeadApprovalHistoryPage = () => {
     {
       header: 'My Decision',
       accessor: 'action',
-      cell: (row) => (
-        <StatusBadge
-          status={row.action}
-          variant={row.action === 'APPROVED' ? 'success' : 'danger'}
-        />
-      )
+      cell: (row) => {
+        const status = row.myActionStatus || row.action;
+        return (
+          <StatusBadge
+            status={status}
+            variant={status === 'APPROVED' ? 'success' : 'danger'}
+          />
+        );
+      }
     },
     {
       header: 'Remarks / Reason',
       accessor: 'remarks',
       cell: (row) => (
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-          {row.remarks || '—'}
+          {row.myRemarks || row.remarks || '—'}
         </span>
       )
     },

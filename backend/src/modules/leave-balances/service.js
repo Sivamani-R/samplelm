@@ -43,7 +43,7 @@ export class BalanceService {
       const openingBalance = policy.carry_forward_allowed ? Math.min(annualEntitlement * 0.3, carryForwardLimit) : 0;
       const accrued = policy.category_id === 'CAT-COMP' 
         ? compOffEarned 
-        : Number((monthlyAccrual * 8).toFixed(1));
+        : Math.round(monthlyAccrual * 8);
 
       const encashed = 0;
       const rawClosing = openingBalance + accrued - used - pending - encashed;
@@ -55,13 +55,13 @@ export class BalanceService {
         categoryName: policy.category_name || policy.category_id,
         categoryCode: policy.category_code || '',
         paid: Boolean(policy.paid),
-        openingBalance: Number(openingBalance.toFixed(1)),
-        accrued: Number(accrued.toFixed(1)),
-        used: Number(used.toFixed(1)),
-        pending: Number(pending.toFixed(1)),
+        openingBalance: Math.round(openingBalance),
+        accrued: Math.round(accrued),
+        used: Math.round(used),
+        pending: Math.round(pending),
         encashed: 0,
-        closingBalance: Number(closingBalance.toFixed(1)),
-        available: Number(closingBalance.toFixed(1)),
+        closingBalance: Math.round(closingBalance),
+        available: Math.round(closingBalance),
         annualEntitlement,
         monthlyAccrual,
         maxBalance,

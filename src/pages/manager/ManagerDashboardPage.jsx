@@ -7,7 +7,8 @@ import {
   ArrowRight,
   Building2,
   Eye,
-  CheckCircle2
+  CheckCircle2,
+  PlusCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { approvalService } from '../../services/approvalService.js';

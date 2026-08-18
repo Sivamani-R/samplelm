@@ -57,8 +57,8 @@ export const apiClient = {
     try {
       const response = await fetch(url, config);
 
-      // Handle 401 Unauthorized globally
-      if (response.status === 401) {
+      // Handle 401 Unauthorized globally (skip for login to allow invalid credentials to surface)
+      if (response.status === 401 && !endpoint.includes('/auth/login')) {
         authService.logout();
         window.dispatchEvent(new CustomEvent('auth:unauthorized'));
         throw new ApiError('Session expired or unauthorized. Please log in again.', 401);

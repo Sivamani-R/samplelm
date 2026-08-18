@@ -114,7 +114,7 @@ export const LeaveBalanceDonut = ({ balances = [] }) => {
           }}
         >
           <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>
-            {totalAvailable.toFixed(1)}
+            {totalAvailable}
           </span>
           <span style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', marginTop: '2px' }}>
             Available
@@ -127,19 +127,19 @@ export const LeaveBalanceDonut = ({ balances = [] }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--primary-orange)' }} />
           <span style={{ color: 'var(--text-secondary)' }}>Available:</span>
-          <strong style={{ color: 'var(--text-primary)' }}>{totalAvailable.toFixed(1)}d</strong>
+          <strong style={{ color: 'var(--text-primary)' }}>{totalAvailable}d</strong>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--nav-dark)' }} />
           <span style={{ color: 'var(--text-secondary)' }}>Used:</span>
-          <strong style={{ color: 'var(--text-primary)' }}>{totalUsed.toFixed(1)}d</strong>
+          <strong style={{ color: 'var(--text-primary)' }}>{totalUsed}d</strong>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'var(--status-warning)' }} />
           <span style={{ color: 'var(--text-secondary)' }}>Pending:</span>
-          <strong style={{ color: 'var(--text-primary)' }}>{totalPending.toFixed(1)}d</strong>
+          <strong style={{ color: 'var(--text-primary)' }}>{totalPending}d</strong>
         </div>
       </div>
     </div>

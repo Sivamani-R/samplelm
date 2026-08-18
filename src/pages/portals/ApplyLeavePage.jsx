@@ -219,7 +219,8 @@ export const ApplyLeavePage = () => {
 
     // Minimum Notice Validation
     if (selectedPolicy && selectedPolicy.minNoticeDays > 0 && formData.startDate) {
-      const today = new Date('2026-08-18');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const start = new Date(formData.startDate);
       const diffDays = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
 
@@ -310,6 +311,18 @@ export const ApplyLeavePage = () => {
   };
   const basePath = getBasePath();
 
+  const today = new Date();
+  const offset = today.getTimezoneOffset() * 60000;
+  const todayStr = new Date(today.getTime() - offset).toISOString().split('T')[0];
+  
+  const minDateObj = new Date(today);
+  minDateObj.setMonth(minDateObj.getMonth() - 3);
+  const minDateStr = new Date(minDateObj.getTime() - offset).toISOString().split('T')[0];
+
+  const maxDateObj = new Date(today);
+  maxDateObj.setMonth(maxDateObj.getMonth() + 3);
+  const maxDateStr = new Date(maxDateObj.getTime() - offset).toISOString().split('T')[0];
+
   return (
     <div>
       <PageHeader
@@ -389,6 +402,8 @@ export const ApplyLeavePage = () => {
                     name="startDate"
                     value={formData.startDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value, endDate: e.target.value }))}
+                    min={minDateStr}
+                    max={maxDateStr}
                   />
                 </FormField>
 
@@ -414,6 +429,8 @@ export const ApplyLeavePage = () => {
                     name="startDate"
                     value={formData.startDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    min={minDateStr}
+                    max={maxDateStr}
                   />
                 </FormField>
 
@@ -422,7 +439,8 @@ export const ApplyLeavePage = () => {
                     name="endDate"
                     value={formData.endDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                    min={formData.startDate}
+                    min={formData.startDate || minDateStr}
+                    max={maxDateStr}
                   />
                 </FormField>
               </div>

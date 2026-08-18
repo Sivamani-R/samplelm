@@ -7,31 +7,43 @@ import { Clock, AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
 export const SLAIndicator = ({ sla }) => {
   if (!sla) return null;
 
-  const { status, elapsedHours, limitHours, isEscalated, waitingFormatted } = sla;
+  const limit = sla.limitHours || sla.slaHours || 48;
+  
+  let elapsed = sla.elapsedHours;
+  if (elapsed === undefined) {
+    if (sla.appliedDate) {
+      elapsed = Math.round((Date.now() - new Date(sla.appliedDate).getTime()) / (1000 * 60 * 60));
+    } else {
+      elapsed = Math.max(0, limit - (sla.hoursRemaining || 0));
+    }
+  }
+
+  const escalated = sla.isEscalated || sla.status === 'OVERDUE';
+  const currentStatus = sla.status || (escalated ? 'OVERDUE' : (limit - elapsed <= 12 ? 'NEARING_SLA' : 'NORMAL'));
 
   let bg = '#eff6ff';
   let border = '#bfdbfe';
   let text = '#1d4ed8';
   let icon = <Clock size={13} />;
-  let label = waitingFormatted || `${elapsedHours}h / ${limitHours}h SLA`;
+  let label = sla.waitingFormatted || `${elapsed}h / ${limit}h SLA`;
 
-  if (isEscalated || status === 'OVERDUE') {
+  if (escalated || currentStatus === 'OVERDUE') {
     bg = '#fef2f2';
     border = '#fca5a5';
     text = '#dc2626';
     icon = <AlertTriangle size={13} />;
-    label = `OVERDUE (${elapsedHours}h > ${limitHours}h)`;
-  } else if (status === 'NEARING_SLA') {
+    label = `OVERDUE (${elapsed}h > ${limit}h)`;
+  } else if (currentStatus === 'NEARING_SLA') {
     bg = '#fffbeb';
     border = '#fde68a';
     text = '#b45309';
     icon = <Clock size={13} />;
-    label = `Nearing SLA (${elapsedHours}h)`;
+    label = `Nearing SLA (${elapsed}h)`;
   }
 
   return (
     <span
-      title={`SLA Target: ${limitHours} hours. Elapsed: ${elapsedHours} hours.`}
+      title={`SLA Target: ${limit} hours. Elapsed: ${elapsed} hours.`}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
