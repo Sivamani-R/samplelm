@@ -1,0 +1,6 @@
+export const ROLES = {
+  ADMIN: 'ADMIN',
+  MANAGER: 'MANAGER',
+  TEAM_LEAD: 'TEAM_LEAD',
+  EMPLOYEE: 'EMPLOYEE'
+};

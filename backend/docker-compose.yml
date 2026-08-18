@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: nexleave-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: nexleave
+      POSTGRES_PASSWORD: nexleave_password
+      POSTGRES_DB: nexleave_db
+    volumes:
+      - nexleave_data:/var/lib/postgresql/data
+
+volumes:
+  nexleave_data:

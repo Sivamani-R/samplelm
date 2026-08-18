@@ -1,0 +1,480 @@
+/* ==========================================================================
+   PAGE SPECIFIC LAYOUTS & ENTERPRISE SCREENS
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. LOGIN SCREEN (Enterprise Orange & Blue)
+   -------------------------------------------------------------------------- */
+.login-page-shell {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  background-color: #f1f5f9;
+}
+
+.login-brand-panel {
+  flex: 1;
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 60%, #1e3a8a 100%);
+  color: #ffffff;
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-brand-panel::before {
+  content: '';
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(234, 88, 12, 0.25) 0%, rgba(234, 88, 12, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.login-brand-logo {
+  width: 44px;
+  height: 44px;
+  background: var(--primary-orange);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+}
+
+.login-hero-content {
+  max-width: 480px;
+  z-index: 2;
+}
+
+.login-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--primary-orange-light);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: 0.04em;
+}
+
+.login-hero-title {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.login-hero-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.login-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.login-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #e2e8f0;
+}
+
+.login-feature-icon {
+  color: var(--primary-orange);
+  flex-shrink: 0;
+}
+
+.login-brand-footer {
+  font-size: 12px;
+  color: #94a3b8;
+  z-index: 2;
+}
+
+/* Form Panel */
+.login-form-panel {
+  width: 520px;
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+  box-shadow: var(--shadow-xl);
+  overflow-y: auto;
+}
+
+.login-form-header {
+  margin-bottom: 28px;
+}
+
+.login-form-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.login-form-subtitle {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* Demo Role Fast-Pickers */
+.demo-accounts-card {
+  margin-top: 28px;
+  padding: 16px;
+  background-color: var(--bg-surface-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+}
+
+.demo-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.demo-account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.demo-account-btn {
+  padding: 8px 10px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-fast);
+}
+
+.demo-account-btn:hover {
+  border-color: var(--primary-orange);
+  background-color: var(--primary-orange-subtle);
+  transform: translateY(-1px);
+}
+
+.demo-btn-role {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--primary-orange);
+}
+
+.demo-btn-id {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 900px) {
+  .login-page-shell {
+    flex-direction: column;
+  }
+  .login-brand-panel {
+    display: none;
+  }
+  .login-form-panel {
+    width: 100%;
+    min-height: 100vh;
+    padding: 32px 20px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. DASHBOARD OVERVIEW GRID
+   -------------------------------------------------------------------------- */
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dashboard-layout-columns {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-layout-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.quick-action-card {
+  padding: 16px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.quick-action-card:hover {
+  border-color: var(--primary-orange);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.quick-action-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background-color: var(--primary-orange-subtle);
+  color: var(--primary-orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-action-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.quick-action-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   3. EMPLOYEE MAPPING HIERARCHY TREE
+   -------------------------------------------------------------------------- */
+.hierarchy-card-container {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-xs);
+  margin-bottom: 16px;
+}
+
+.hierarchy-flow-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.hierarchy-node-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: var(--bg-surface-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  min-width: 220px;
+  position: relative;
+}
+
+.hierarchy-node-box.node-employee {
+  border-left: 4px solid var(--info-blue);
+  background-color: #f8fafc;
+}
+
+.hierarchy-node-box.node-tl {
+  border-left: 4px solid var(--status-warning);
+  background-color: #fffdfa;
+}
+
+.hierarchy-node-box.node-mgr {
+  border-left: 4px solid var(--primary-orange);
+  background-color: #fff9f5;
+}
+
+.hierarchy-node-box.node-empty {
+  border: 1px dashed var(--border-medium);
+  background-color: #fafbfc;
+  color: var(--text-tertiary);
+}
+
+.hierarchy-connector-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--text-tertiary);
+}
+
+.node-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.node-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.node-role-badge {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   4. LOCATION-BASED LEAVE POLICY SETUP
+   -------------------------------------------------------------------------- */
+.policy-selector-header {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-xs);
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+  .policy-selector-header {
+    grid-template-columns: 1fr;
+  }
+}
+
+.policy-form-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-xs);
+}
+
+.policy-section-group {
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.policy-section-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.policy-section-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.policy-section-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .form-grid-2col, .form-grid-3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. APPROVAL WORKFLOWS TIMELINE
+   -------------------------------------------------------------------------- */
+.workflow-tier-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.workflow-duration-badge {
+  padding: 8px 14px;
+  background-color: var(--nav-dark);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.workflow-chain-flow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.approver-step-chip {
+  padding: 6px 12px;
+  background-color: var(--primary-orange-subtle);
+  border: 1px solid var(--primary-orange-border);
+  color: var(--primary-orange-hover);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
