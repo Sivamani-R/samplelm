@@ -8,7 +8,31 @@ export class CompOffService {
        ORDER BY applied_date DESC`,
       [userId]
     );
-    return rows;
+
+    const history = rows.map(r => ({
+      id: r.id,
+      employeeId: r.employee_id,
+      workedDate: typeof r.worked_date === 'string' ? r.worked_date : (r.worked_date ? r.worked_date.toISOString().split('T')[0] : null),
+      hoursWorked: r.hours_worked,
+      compOffEarned: Number(r.comp_off_earned),
+      reason: r.reason,
+      status: r.status,
+      expiryDate: r.expiry_date,
+      appliedDate: r.applied_date
+    }));
+
+    const earned = history.filter(c => c.status === 'APPROVED').reduce((sum, c) => sum + c.compOffEarned, 0);
+    const pending = history.filter(c => c.status === 'PENDING').reduce((sum, c) => sum + c.compOffEarned, 0);
+
+    return {
+      history,
+      summary: {
+        available: earned,
+        pending,
+        used: 0,
+        expired: 0
+      }
+    };
   }
 
   async createCompOff(userId, data) {

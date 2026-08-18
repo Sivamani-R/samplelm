@@ -27,7 +27,23 @@ export class ApprovalService {
       JOIN users u ON r.employee_id = u.id
       LEFT JOIN locations l ON r.location_id = l.id
       WHERE r.current_approver_id = $1 AND r.status IN ('PENDING', 'CLARIFICATION_REQUIRED')
-      ORDER BY r.applied_date DESC
+      
+      UNION ALL
+      
+      SELECT a.id, a.employee_id, NULL as leave_type_id, u.location_id,
+             a.date as start_date, a.date as end_date, 'FULL_DAY' as start_session, 'FULL_DAY' as end_session,
+             0 as duration, a.reason, a.status, a.applied_date, ai.approver_id as current_approver_id,
+             false as escalated, ai.deadline as escalation_deadline, '[]' as attachments,
+             'Attendance Regularization' as leave_type_name, 'ATT' as leave_type_code,
+             u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+             l.name as location_name
+      FROM attendance_regularization a
+      JOIN approval_instances ai ON a.id = ai.leave_request_id
+      JOIN users u ON a.employee_id = u.id
+      LEFT JOIN locations l ON u.location_id = l.id
+      WHERE ai.approver_id = $1 AND ai.status = 'PENDING' AND a.status IN ('PENDING', 'CLARIFICATION_REQUIRED')
+      
+      ORDER BY applied_date DESC
     `, [approverId]);
 
     return rows.map(r => {
@@ -70,20 +86,41 @@ export class ApprovalService {
   }
 
   async getApprovalById(leaveRequestId) {
-    const { rows } = await query(`
-      SELECT r.id, r.employee_id, r.leave_type_id, r.location_id,
-             r.start_date, r.end_date, r.start_session, r.end_session,
-             r.duration, r.reason, r.status, r.applied_date, r.current_approver_id,
-             r.escalated, r.escalation_deadline, r.attachments,
-             c.name as leave_type_name, c.code as leave_type_code,
-             u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
-             l.name as location_name
-      FROM leave_requests r
-      JOIN leave_categories c ON r.leave_type_id = c.id
-      JOIN users u ON r.employee_id = u.id
-      LEFT JOIN locations l ON r.location_id = l.id
-      WHERE r.id = $1
-    `, [leaveRequestId]);
+    const isAtt = leaveRequestId.startsWith('ATT-');
+    
+    let rows;
+    if (isAtt) {
+      const res = await query(`
+        SELECT a.id, a.employee_id, NULL as leave_type_id, u.location_id,
+               a.date as start_date, a.date as end_date, 'FULL_DAY' as start_session, 'FULL_DAY' as end_session,
+               0 as duration, a.reason, a.status, a.applied_date, NULL as current_approver_id,
+               false as escalated, NULL as escalation_deadline, '[]' as attachments,
+               'Attendance Regularization' as leave_type_name, 'ATT' as leave_type_code,
+               u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+               l.name as location_name
+        FROM attendance_regularization a
+        JOIN users u ON a.employee_id = u.id
+        LEFT JOIN locations l ON u.location_id = l.id
+        WHERE a.id = $1
+      `, [leaveRequestId]);
+      rows = res.rows;
+    } else {
+      const res = await query(`
+        SELECT r.id, r.employee_id, r.leave_type_id, r.location_id,
+               r.start_date, r.end_date, r.start_session, r.end_session,
+               r.duration, r.reason, r.status, r.applied_date, r.current_approver_id,
+               r.escalated, r.escalation_deadline, r.attachments,
+               c.name as leave_type_name, c.code as leave_type_code,
+               u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+               l.name as location_name
+        FROM leave_requests r
+        JOIN leave_categories c ON r.leave_type_id = c.id
+        JOIN users u ON r.employee_id = u.id
+        LEFT JOIN locations l ON r.location_id = l.id
+        WHERE r.id = $1
+      `, [leaveRequestId]);
+      rows = res.rows;
+    }
 
     if (!rows.length) throw new NotFoundError('Approval not found');
     const r = rows[0];
@@ -178,7 +215,21 @@ export class ApprovalService {
       JOIN leave_categories c ON r.leave_type_id = c.id
       JOIN users u ON r.employee_id = u.id
       WHERE ai.approver_id = $1 AND ai.status NOT IN ('PENDING', 'NOT_STARTED')
-      ORDER BY ai.action_date DESC
+      
+      UNION ALL
+      
+      SELECT a.id, a.employee_id, NULL as leave_type_id, u.location_id,
+             a.date as start_date, a.date as end_date, 'FULL_DAY' as start_session, 'FULL_DAY' as end_session,
+             0 as duration, a.reason, a.status, a.applied_date,
+             'Attendance Regularization' as leave_type_name, 'ATT' as leave_type_code,
+             u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+             ai.status as my_action_status, ai.action_date, ai.remarks as my_remarks
+      FROM approval_instances ai
+      JOIN attendance_regularization a ON ai.leave_request_id = a.id
+      JOIN users u ON a.employee_id = u.id
+      WHERE ai.approver_id = $1 AND ai.status NOT IN ('PENDING', 'NOT_STARTED')
+      
+      ORDER BY action_date DESC
     `, [approverId]);
 
     return rows.map(r => {
@@ -264,18 +315,21 @@ export class ApprovalService {
     const client = await getClient();
     try {
       await client.query('BEGIN');
+      
+      const isAtt = leaveRequestId.startsWith('ATT-');
+      const table = isAtt ? 'attendance_regularization' : 'leave_requests';
 
       const { rows: reqRows } = await client.query(
-        'SELECT * FROM leave_requests WHERE id = $1 FOR UPDATE',
+        `SELECT * FROM ${table} WHERE id = $1 FOR UPDATE`,
         [leaveRequestId]
       );
-      if (!reqRows.length) throw new NotFoundError('Leave request not found');
+      if (!reqRows.length) throw new NotFoundError('Request not found');
       const leaveReq = reqRows[0];
 
       const { rows: approverUser } = await client.query('SELECT role, name FROM users WHERE id = $1', [approverId]);
       const isApproverAdmin = approverUser.length && approverUser[0].role === 'ADMIN';
 
-      if (leaveReq.current_approver_id !== approverId && !isApproverAdmin) {
+      if (!isAtt && leaveReq.current_approver_id !== approverId && !isApproverAdmin) {
         throw new UnauthorizedError('You are not authorized to approve this request right now');
       }
 
@@ -311,13 +365,15 @@ export class ApprovalService {
             WHERE id = $2
           `, [nextDeadline, nextStep.id]);
 
-          await client.query(`
-            UPDATE leave_requests
-            SET current_approver_id = $1,
-                escalation_deadline = $2,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = $3
-          `, [nextStep.approver_id, nextDeadline, leaveRequestId]);
+          if (!isAtt) {
+            await client.query(`
+              UPDATE leave_requests
+              SET current_approver_id = $1,
+                  escalation_deadline = $2,
+                  updated_at = CURRENT_TIMESTAMP
+              WHERE id = $3
+            `, [nextStep.approver_id, nextDeadline, leaveRequestId]);
+          }
 
           const nextNotifId = `NOTIF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
           const link = nextStep.role === 'MANAGER' ? '/manager/approvals' : '/team-lead/approvals';
@@ -332,11 +388,19 @@ export class ApprovalService {
             link
           ]);
         } else {
-          await client.query(`
-            UPDATE leave_requests
-            SET status = 'APPROVED', current_approver_id = NULL, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $1
-          `, [leaveRequestId]);
+          if (!isAtt) {
+            await client.query(`
+              UPDATE leave_requests
+              SET status = 'APPROVED', current_approver_id = NULL, updated_at = CURRENT_TIMESTAMP
+              WHERE id = $1
+            `, [leaveRequestId]);
+          } else {
+            await client.query(`
+              UPDATE attendance_regularization
+              SET status = 'APPROVED'
+              WHERE id = $1
+            `, [leaveRequestId]);
+          }
           await eventPublisher.publishTransactionally(client, EVENT_TYPES.LEAVE_APPROVED, { leaveRequestId });
         }
       } else if (action === 'REJECT') {
@@ -346,19 +410,35 @@ export class ApprovalService {
           WHERE id = $2
         `, [remarks || 'Rejected', currentStep.id]);
 
-        await client.query(`
-          UPDATE leave_requests
-          SET status = 'REJECTED', current_approver_id = NULL, reason = COALESCE(reason, '') || ' [Rejected: ' || $1 || ']', updated_at = CURRENT_TIMESTAMP
-          WHERE id = $2
-        `, [remarks || 'Rejected by approver', leaveRequestId]);
+        if (!isAtt) {
+          await client.query(`
+            UPDATE leave_requests
+            SET status = 'REJECTED', current_approver_id = NULL, reason = COALESCE(reason, '') || ' [Rejected: ' || $1 || ']', updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+          `, [remarks || 'Rejected by approver', leaveRequestId]);
+        } else {
+          await client.query(`
+            UPDATE attendance_regularization
+            SET status = 'REJECTED', reason = COALESCE(reason, '') || ' [Rejected: ' || $1 || ']'
+            WHERE id = $2
+          `, [remarks || 'Rejected by approver', leaveRequestId]);
+        }
 
         await eventPublisher.publishTransactionally(client, EVENT_TYPES.LEAVE_REJECTED, { leaveRequestId });
       } else if (action === 'CLARIFY' || action === 'CLARIFICATION') {
-        await client.query(`
-          UPDATE leave_requests
-          SET status = 'CLARIFICATION_REQUIRED', updated_at = CURRENT_TIMESTAMP
-          WHERE id = $1
-        `, [leaveRequestId]);
+        if (!isAtt) {
+          await client.query(`
+            UPDATE leave_requests
+            SET status = 'CLARIFICATION_REQUIRED', updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+          `, [leaveRequestId]);
+        } else {
+          await client.query(`
+            UPDATE attendance_regularization
+            SET status = 'CLARIFICATION_REQUIRED'
+            WHERE id = $1
+          `, [leaveRequestId]);
+        }
         await eventPublisher.publishTransactionally(client, EVENT_TYPES.CLARIFICATION_REQUESTED, { leaveRequestId, remarks });
       }
 
