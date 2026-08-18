@@ -287,8 +287,11 @@ export class ApprovalService {
         'SELECT * FROM approval_instances WHERE leave_request_id = $1 ORDER BY step_order ASC FOR UPDATE',
         [leaveRequestId]
       );
-      const currentStep = instances.find(i => i.status === 'PENDING') || instances[0];
+      const currentStep = instances.find(i => i.status === 'PENDING');
       if (!currentStep) throw new BusinessLogicError('No pending approval steps found');
+      if (currentStep.approver_id !== approverId && !isApproverAdmin) {
+        throw new UnauthorizedError('You are not authorized to act on this approval step');
+      }
 
       if (action === 'APPROVE') {
         await client.query(`

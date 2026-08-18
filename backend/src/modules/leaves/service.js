@@ -93,6 +93,12 @@ export class LeaveService {
     }
     const approversList = typeof workflow.approvers === 'string' ? JSON.parse(workflow.approvers) : workflow.approvers;
 
+    const getFallbackAdmin = async () => {
+      const { rows: admins } = await query("SELECT id FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE' LIMIT 1");
+      if (!admins.length) throw new BusinessLogicError('Configuration Error: No active Administrator found in the system for workflow fallback');
+      return admins[0].id;
+    };
+
     // Build the concrete approval chain steps based on hierarchy
     const chainSteps = [];
     for (const role of approversList) {
@@ -105,12 +111,10 @@ export class LeaveService {
           chainSteps.push({ role: 'MANAGER', approverId: mapping.manager_id });
         } else if (!chainSteps.some(s => s.role === 'MANAGER' || s.role === 'ADMIN')) {
           // Fallback to top manager or admin
-          const { rows: admins } = await query("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1");
-          chainSteps.push({ role: 'ADMIN', approverId: admins[0]?.id || 'ADM001' });
+          chainSteps.push({ role: 'ADMIN', approverId: await getFallbackAdmin() });
         }
       } else if (role === 'ADMIN') {
-        const { rows: admins } = await query("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1");
-        chainSteps.push({ role: 'ADMIN', approverId: admins[0]?.id || 'ADM001' });
+        chainSteps.push({ role: 'ADMIN', approverId: await getFallbackAdmin() });
       }
     }
 
@@ -121,8 +125,7 @@ export class LeaveService {
       } else if (mapping.manager_id) {
         chainSteps.push({ role: 'MANAGER', approverId: mapping.manager_id });
       } else {
-        const { rows: admins } = await query("SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1");
-        chainSteps.push({ role: 'ADMIN', approverId: admins[0]?.id || 'ADM001' });
+        chainSteps.push({ role: 'ADMIN', approverId: await getFallbackAdmin() });
       }
     }
 
@@ -135,9 +138,12 @@ export class LeaveService {
       await client.query('BEGIN');
       const requestId = `LR-${Date.now().toString(36).toUpperCase()}`;
 
+      const initialTimeoutDays = 2; // Default 48 hrs SLA
+      const initialDeadline = new Date(Date.now() + initialTimeoutDays * 24 * 60 * 60 * 1000).toISOString();
+
       await client.query(
-        `INSERT INTO leave_requests (id, employee_id, leave_type_id, location_id, start_date, end_date, start_session, end_session, duration, reason, current_approver_id, attachments)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        `INSERT INTO leave_requests (id, employee_id, leave_type_id, location_id, start_date, end_date, start_session, end_session, duration, reason, current_approver_id, escalation_deadline, attachments)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
         [
           requestId,
           employeeId,
@@ -150,6 +156,7 @@ export class LeaveService {
           durationObj.workingDays,
           leaveData.reason || '',
           currentApproverId,
+          initialDeadline,
           JSON.stringify(leaveData.attachments || [])
         ]
       );
@@ -157,11 +164,19 @@ export class LeaveService {
       // Create workflow instances
       let stepOrder = 1;
       for (const step of chainSteps) {
-        await client.query(
-          `INSERT INTO approval_instances (leave_request_id, role, approver_id, step_order, status)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [requestId, step.role, step.approverId, stepOrder, stepOrder === 1 ? 'PENDING' : 'NOT_STARTED']
-        );
+        if (stepOrder === 1) {
+          await client.query(
+            `INSERT INTO approval_instances (leave_request_id, role, approver_id, step_order, status, deadline, timeout_days)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [requestId, step.role, step.approverId, stepOrder, 'PENDING', initialDeadline, initialTimeoutDays]
+          );
+        } else {
+          await client.query(
+            `INSERT INTO approval_instances (leave_request_id, role, approver_id, step_order, status, timeout_days)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [requestId, step.role, step.approverId, stepOrder, 'NOT_STARTED', initialTimeoutDays]
+          );
+        }
         stepOrder++;
       }
 

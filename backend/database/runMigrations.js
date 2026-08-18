@@ -138,6 +138,11 @@ const runMigrations = async () => {
         status VARCHAR(50) DEFAULT 'PENDING',
         applied_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         current_approver_id VARCHAR(50) REFERENCES users(id),
+        escalated BOOLEAN DEFAULT false,
+        escalated_at TIMESTAMP,
+        escalation_reason TEXT,
+        escalation_deadline TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         attachments JSONB DEFAULT '[]'::jsonb
       );
 
@@ -149,7 +154,11 @@ const runMigrations = async () => {
         status VARCHAR(50) DEFAULT 'PENDING',
         remarks TEXT,
         action_date TIMESTAMP,
-        step_order INT
+        step_order INT,
+        deadline TIMESTAMP,
+        timeout_days INT,
+        escalated_at TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS comp_off_requests (

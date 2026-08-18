@@ -62,7 +62,7 @@ export const Table = ({
                     const cellKey = `${rowKey}-${col.key || col.header}`;
                     return (
                       <td key={cellKey} style={{ textAlign: col.align || 'left' }}>
-                        {col.render ? col.render(row) : row[col.key]}
+                        {(col.render || col.cell) ? (col.render || col.cell)(row) : row[col.key || col.accessor]}
                       </td>
                     );
                   })}

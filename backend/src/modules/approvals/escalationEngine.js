@@ -141,7 +141,12 @@ export class EscalationEngine {
         } else {
           // If no further step in chain, escalate to Admin
           const { rows: admins } = await client.query("SELECT id, name FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE' LIMIT 1");
-          const adminId = admins[0]?.id || 'ADM001';
+          if (!admins.length) {
+            await client.query('ROLLBACK');
+            console.error(`[EscalationEngine] Cannot escalate req #${req.id}: No active ADMIN found`);
+            continue;
+          }
+          const adminId = admins[0].id;
 
           await client.query(`
             UPDATE leave_requests
