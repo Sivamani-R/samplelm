@@ -205,35 +205,7 @@ export const AdminOverviewPage = () => {
               boxShadow: 'var(--shadow-xs)'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                System Readiness Checklist
-              </h2>
-              <StatusBadge status="READY FOR MODULE 2" variant="success" />
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <CheckCircle2 size={16} color="var(--status-success)" />
-                <span>JWT Authentication & Secure Storage abstraction ready</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <CheckCircle2 size={16} color="var(--status-success)" />
-                <span>Role-based routing guards (Admin, TL, Manager, Employee) enforced</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <CheckCircle2 size={16} color="var(--status-success)" />
-                <span>Corporate locations & timezone jurisdictions configured</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <CheckCircle2 size={16} color="var(--status-success)" />
-                <span>Location-based Leave Policy engine schemas saved</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                <CheckCircle2 size={16} color="var(--status-success)" />
-                <span>Tiered approval workflow schemas prepared for execution</span>
-              </div>
-            </div>
           </div>
         </div>
 

@@ -5,7 +5,8 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-reac
  * Location-Aware Mini Leave Calendar Grid showing leaves, holidays, weekends
  */
 export const MiniLeaveCalendar = ({ holidays = [], leaves = [] }) => {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 7, 1)); // August 2026
+  const today = new Date();
+  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -73,7 +74,7 @@ export const MiniLeaveCalendar = ({ holidays = [], leaves = [] }) => {
       day: d,
       isWeekend,
       event,
-      isToday: year === 2026 && month === 7 && d === 18,
+      isToday: year === today.getFullYear() && month === today.getMonth() && d === today.getDate(),
       key: `day-${d}`
     });
   }
@@ -177,7 +178,7 @@ export const MiniLeaveCalendar = ({ holidays = [], leaves = [] }) => {
           return (
             <div
               key={item.key}
-              title={item.event ? item.event.title : (item.isToday ? 'Today (Aug 18)' : '')}
+              title={item.event ? item.event.title : (item.isToday ? 'Today' : '')}
               style={{
                 height: '34px',
                 display: 'flex',

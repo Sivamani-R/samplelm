@@ -47,12 +47,16 @@ export const ManagerSidebar = ({ isOpen = false, onClose }) => {
       <aside className={`admin-sidebar ${isOpen ? 'sidebar-open' : ''}`}>
         {/* Brand Header */}
         <div className="sidebar-brand-header">
-          <div className="brand-icon-logo">
-            <Sparkles size={20} />
+          <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+            <img 
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSO4Om_xkHI-SdgQLoDn5EW5qcDsSfM2DIbNLa1PRvAa_m8yxQScX7ERdw&s=10" 
+              alt="Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           <div className="brand-meta-info">
-            <div className="brand-name">
-              Nex<span>Leave</span>
+            <div className="brand-name" style={{ fontSize: '14px', whiteSpace: 'normal', lineHeight: '1.2' }}>
+              Leave Management System
             </div>
             <div className="brand-tag">Manager Executive Portal</div>
           </div>

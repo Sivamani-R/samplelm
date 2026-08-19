@@ -97,8 +97,12 @@ export const LoginPage = () => {
       {/* Brand Hero Panel */}
       <div className="login-brand-panel">
         <div className="login-brand-header">
-          <div className="login-brand-logo">
-            <Sparkles size={24} />
+          <div style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', overflow: 'hidden' }}>
+            <img 
+              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSO4Om_xkHI-SdgQLoDn5EW5qcDsSfM2DIbNLa1PRvAa_m8yxQScX7ERdw&s=10" 
+              alt="Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           <div>
             <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em' }}>
@@ -108,11 +112,6 @@ export const LoginPage = () => {
         </div>
 
         <div className="login-hero-content">
-          <div className="login-hero-badge">
-            <ShieldCheck size={14} />
-            <span>ENTERPRISE GOVERNANCE • MODULE 1</span>
-          </div>
-
           <h1 className="login-hero-title">
             Dynamic, Location-Aware Leave Management.
           </h1>
@@ -122,7 +121,7 @@ export const LoginPage = () => {
       {/* Login Form Panel */}
       <div className="login-form-panel">
         <div className="login-form-header">
-          <h2 className="login-form-title">Sign In to NexLeave</h2>
+          <h2 className="login-form-title">Sign In to LMS</h2>
           <p className="login-form-subtitle">
             Enter your employee credentials to access your portal.
           </p>
