@@ -102,10 +102,7 @@ export const LoginPage = () => {
           </div>
           <div>
             <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '-0.02em' }}>
-              NexLeave
-            </div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', letterSpacing: '0.06em' }}>
-              ENTERPRISE PTO & LEAVE SYSTEM
+              Leave Management System
             </div>
           </div>
         </div>
@@ -119,33 +116,6 @@ export const LoginPage = () => {
           <h1 className="login-hero-title">
             Dynamic, Location-Aware Leave Management.
           </h1>
-
-          <p className="login-hero-desc">
-            Autonomous organizational setup, location-specific statutory accrual policies, and multi-tier approval workflow schemas built for enterprise scale.
-          </p>
-
-          <div className="login-feature-list">
-            <div className="login-feature-item">
-              <CheckCircle size={17} className="login-feature-icon" />
-              <span>Location-based PTO, Sick & Casual leave entitlement policies</span>
-            </div>
-            <div className="login-feature-item">
-              <CheckCircle size={17} className="login-feature-icon" />
-              <span>Multi-tier Employee → Team Lead → Manager hierarchy mapping</span>
-            </div>
-            <div className="login-feature-item">
-              <CheckCircle size={17} className="login-feature-icon" />
-              <span>Configurable duration-based approval workflow tiers</span>
-            </div>
-            <div className="login-feature-item">
-              <CheckCircle size={17} className="login-feature-icon" />
-              <span>Strict Role-Based Access Control (Admin, TL, Manager, Employee)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="login-brand-footer">
-          © {new Date().getFullYear()} NexLeave Systems Inc. Module 1: Auth & Org Configuration.
         </div>
       </div>
 

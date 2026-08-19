@@ -43,6 +43,21 @@ export class ApprovalService {
       LEFT JOIN locations l ON u.location_id = l.id
       WHERE ai.approver_id = $1 AND ai.status = 'PENDING' AND a.status IN ('PENDING', 'CLARIFICATION_REQUIRED')
       
+      UNION ALL
+      
+      SELECT c.id, c.employee_id, NULL as leave_type_id, u.location_id,
+             c.worked_date as start_date, c.worked_date as end_date, 'FULL_DAY' as start_session, 'FULL_DAY' as end_session,
+             c.comp_off_earned as duration, c.reason, c.status, c.applied_date, ai.approver_id as current_approver_id,
+             false as escalated, ai.deadline as escalation_deadline, '[]' as attachments,
+             'Comp-Off Claim' as leave_type_name, 'COMP_OFF' as leave_type_code,
+             u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+             l.name as location_name
+      FROM comp_off_requests c
+      JOIN approval_instances ai ON c.id = ai.leave_request_id
+      JOIN users u ON c.employee_id = u.id
+      LEFT JOIN locations l ON u.location_id = l.id
+      WHERE ai.approver_id = $1 AND ai.status = 'PENDING' AND c.status IN ('PENDING', 'CLARIFICATION_REQUIRED')
+      
       ORDER BY applied_date DESC
     `, [approverId]);
 
@@ -87,6 +102,7 @@ export class ApprovalService {
 
   async getApprovalById(leaveRequestId) {
     const isAtt = leaveRequestId.startsWith('ATT-');
+    const isCo = leaveRequestId.startsWith('CO-');
     
     let rows;
     if (isAtt) {
@@ -102,6 +118,21 @@ export class ApprovalService {
         JOIN users u ON a.employee_id = u.id
         LEFT JOIN locations l ON u.location_id = l.id
         WHERE a.id = $1
+      `, [leaveRequestId]);
+      rows = res.rows;
+    } else if (isCo) {
+      const res = await query(`
+        SELECT c.id, c.employee_id, NULL as leave_type_id, u.location_id,
+               c.worked_date as start_date, c.worked_date as end_date, 'FULL_DAY' as start_session, 'FULL_DAY' as end_session,
+               c.comp_off_earned as duration, c.reason, c.status, c.applied_date, NULL as current_approver_id,
+               false as escalated, NULL as escalation_deadline, '[]' as attachments,
+               'Comp-Off Claim' as leave_type_name, 'COMP_OFF' as leave_type_code,
+               u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+               l.name as location_name
+        FROM comp_off_requests c
+        JOIN users u ON c.employee_id = u.id
+        LEFT JOIN locations l ON u.location_id = l.id
+        WHERE c.id = $1
       `, [leaveRequestId]);
       rows = res.rows;
     } else {
@@ -229,6 +260,19 @@ export class ApprovalService {
       JOIN users u ON a.employee_id = u.id
       WHERE ai.approver_id = $1 AND ai.status NOT IN ('PENDING', 'NOT_STARTED')
       
+      UNION ALL
+      
+      SELECT c.id, c.employee_id, NULL as leave_type_id, u.location_id,
+             c.worked_date as start_date, c.worked_date as end_date, 'FULL_DAY' as start_session, 'FULL_DAY' as end_session,
+             c.comp_off_earned as duration, c.reason, c.status, c.applied_date,
+             'Comp-Off Claim' as leave_type_name, 'COMP_OFF' as leave_type_code,
+             u.name as employee_name, u.email as employee_email, u.department as employee_department, u.designation as employee_designation,
+             ai.status as my_action_status, ai.action_date, ai.remarks as my_remarks
+      FROM approval_instances ai
+      JOIN comp_off_requests c ON ai.leave_request_id = c.id
+      JOIN users u ON c.employee_id = u.id
+      WHERE ai.approver_id = $1 AND ai.status NOT IN ('PENDING', 'NOT_STARTED')
+      
       ORDER BY action_date DESC
     `, [approverId]);
 
@@ -317,7 +361,8 @@ export class ApprovalService {
       await client.query('BEGIN');
       
       const isAtt = leaveRequestId.startsWith('ATT-');
-      const table = isAtt ? 'attendance_regularization' : 'leave_requests';
+      const isCo = leaveRequestId.startsWith('CO-');
+      const table = isAtt ? 'attendance_regularization' : (isCo ? 'comp_off_requests' : 'leave_requests');
 
       const { rows: reqRows } = await client.query(
         `SELECT * FROM ${table} WHERE id = $1 FOR UPDATE`,
@@ -329,7 +374,7 @@ export class ApprovalService {
       const { rows: approverUser } = await client.query('SELECT role, name FROM users WHERE id = $1', [approverId]);
       const isApproverAdmin = approverUser.length && approverUser[0].role === 'ADMIN';
 
-      if (!isAtt && leaveReq.current_approver_id !== approverId && !isApproverAdmin) {
+      if (!isAtt && !isCo && leaveReq.current_approver_id !== approverId && !isApproverAdmin) {
         throw new UnauthorizedError('You are not authorized to approve this request right now');
       }
 
@@ -365,7 +410,7 @@ export class ApprovalService {
             WHERE id = $2
           `, [nextDeadline, nextStep.id]);
 
-          if (!isAtt) {
+          if (!isAtt && !isCo) {
             await client.query(`
               UPDATE leave_requests
               SET current_approver_id = $1,
@@ -388,15 +433,21 @@ export class ApprovalService {
             link
           ]);
         } else {
-          if (!isAtt) {
+          if (!isAtt && !isCo) {
             await client.query(`
               UPDATE leave_requests
               SET status = 'APPROVED', current_approver_id = NULL, updated_at = CURRENT_TIMESTAMP
               WHERE id = $1
             `, [leaveRequestId]);
-          } else {
+          } else if (isAtt) {
             await client.query(`
               UPDATE attendance_regularization
+              SET status = 'APPROVED'
+              WHERE id = $1
+            `, [leaveRequestId]);
+          } else if (isCo) {
+            await client.query(`
+              UPDATE comp_off_requests
               SET status = 'APPROVED'
               WHERE id = $1
             `, [leaveRequestId]);
@@ -410,15 +461,21 @@ export class ApprovalService {
           WHERE id = $2
         `, [remarks || 'Rejected', currentStep.id]);
 
-        if (!isAtt) {
+        if (!isAtt && !isCo) {
           await client.query(`
             UPDATE leave_requests
             SET status = 'REJECTED', current_approver_id = NULL, reason = COALESCE(reason, '') || ' [Rejected: ' || $1 || ']', updated_at = CURRENT_TIMESTAMP
             WHERE id = $2
           `, [remarks || 'Rejected by approver', leaveRequestId]);
-        } else {
+        } else if (isAtt) {
           await client.query(`
             UPDATE attendance_regularization
+            SET status = 'REJECTED', reason = COALESCE(reason, '') || ' [Rejected: ' || $1 || ']'
+            WHERE id = $2
+          `, [remarks || 'Rejected by approver', leaveRequestId]);
+        } else if (isCo) {
+          await client.query(`
+            UPDATE comp_off_requests
             SET status = 'REJECTED', reason = COALESCE(reason, '') || ' [Rejected: ' || $1 || ']'
             WHERE id = $2
           `, [remarks || 'Rejected by approver', leaveRequestId]);
@@ -426,15 +483,21 @@ export class ApprovalService {
 
         await eventPublisher.publishTransactionally(client, EVENT_TYPES.LEAVE_REJECTED, { leaveRequestId });
       } else if (action === 'CLARIFY' || action === 'CLARIFICATION') {
-        if (!isAtt) {
+        if (!isAtt && !isCo) {
           await client.query(`
             UPDATE leave_requests
             SET status = 'CLARIFICATION_REQUIRED', updated_at = CURRENT_TIMESTAMP
             WHERE id = $1
           `, [leaveRequestId]);
-        } else {
+        } else if (isAtt) {
           await client.query(`
             UPDATE attendance_regularization
+            SET status = 'CLARIFICATION_REQUIRED'
+            WHERE id = $1
+          `, [leaveRequestId]);
+        } else if (isCo) {
+          await client.query(`
+            UPDATE comp_off_requests
             SET status = 'CLARIFICATION_REQUIRED'
             WHERE id = $1
           `, [leaveRequestId]);

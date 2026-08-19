@@ -56,31 +56,37 @@
 }
 
 .login-hero-content {
-  max-width: 480px;
+  max-width: 560px;
   z-index: 2;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .login-hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(234, 88, 12, 0.15);
+  border: 1px solid rgba(234, 88, 12, 0.3);
   color: var(--primary-orange-light);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 20px;
-  letter-spacing: 0.04em;
+  margin-bottom: 24px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .login-hero-title {
-  font-size: 36px;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
   margin-bottom: 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .login-hero-desc {
@@ -117,7 +123,7 @@
 
 /* Form Panel */
 .login-form-panel {
-  width: 520px;
+  flex: 1;
   background-color: var(--bg-surface);
   display: flex;
   flex-direction: column;
@@ -125,6 +131,13 @@
   padding: 48px;
   box-shadow: var(--shadow-xl);
   overflow-y: auto;
+}
+
+.login-form-panel > * {
+  max-width: 440px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .login-form-header {
