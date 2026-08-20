@@ -55,6 +55,7 @@ export const ApplyLeavePage = () => {
   const [isCalculatingDuration, setIsCalculatingDuration] = useState(false);
   const [overlapWarning, setOverlapWarning] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+  const [realTimeErrors, setRealTimeErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 1. Fetch available leave policies for employee location
@@ -94,7 +95,6 @@ export const ApplyLeavePage = () => {
       leaveTypeId: typeId,
       isHourly: false
     }));
-    setFormErrors(prev => ({ ...prev, leaveTypeId: null }));
   };
 
   // 3. Real-time Duration & Overlap Calculation
@@ -165,6 +165,47 @@ export const ApplyLeavePage = () => {
     formData.hours,
     formData.leaveTypeId
   ]);
+
+  // 3.5 Clear form errors when user modifies the form
+  useEffect(() => {
+    if (Object.keys(formErrors).length > 0) {
+      setFormErrors({});
+    }
+  }, [
+    formData.startDate,
+    formData.endDate,
+    formData.startSession,
+    formData.endSession,
+    formData.isHourly,
+    formData.hours,
+    formData.leaveTypeId,
+    formData.reason,
+    formData.attachments
+  ]);
+
+  // 3.6 Real-time validations for notice period and balance
+  useEffect(() => {
+    const rErrors = {};
+    
+    // Minimum Notice Validation
+    if (selectedPolicy && selectedPolicy.minNoticeDays > 0 && formData.startDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(formData.startDate);
+      const diffDays = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
+
+      if (diffDays < selectedPolicy.minNoticeDays) {
+        rErrors.startDate = `Policy requires at least ${selectedPolicy.minNoticeDays} day(s) advance notice for ${selectedPolicy.categoryName}`;
+      }
+    }
+
+    // Insufficient balance check
+    if (selectedPolicy && durationInfo && durationInfo.workingDays > selectedPolicy.closingBalance) {
+      rErrors.balance = `Insufficient balance. You requested ${durationInfo.workingDays} days, but only ${selectedPolicy.closingBalance} days are available.`;
+    }
+
+    setRealTimeErrors(rErrors);
+  }, [formData.startDate, durationInfo, selectedPolicy]);
 
   // 4. File Attachment Upload Handler
   const handleFileUpload = (e) => {
@@ -397,7 +438,7 @@ export const ApplyLeavePage = () => {
             {/* Hourly Duration Selector */}
             {formData.isHourly ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <FormField label="Leave Date" required error={formErrors.startDate}>
+                <FormField label="Leave Date" required error={formErrors.startDate || realTimeErrors.startDate}>
                   <DateInput
                     name="startDate"
                     value={formData.startDate}
@@ -424,13 +465,13 @@ export const ApplyLeavePage = () => {
             ) : (
               /* Daily Leave Date Range */
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <FormField label="Start Date" required error={formErrors.startDate}>
+                <FormField label="Start Date" required error={formErrors.startDate || realTimeErrors.startDate}>
                   <DateInput
                     name="startDate"
                     value={formData.startDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                     min={minDateStr}
-                    max={maxDateStr}
+                    max={formData.endDate || maxDateStr}
                   />
                 </FormField>
 
@@ -475,7 +516,7 @@ export const ApplyLeavePage = () => {
             <DurationPreview
               durationInfo={durationInfo}
               isLoading={isCalculatingDuration}
-              error={formErrors.balance || overlapWarning}
+              error={formErrors.balance || realTimeErrors.balance || overlapWarning}
             />
 
             {/* Reason */}
@@ -582,7 +623,7 @@ export const ApplyLeavePage = () => {
                 variant="primary"
                 type="submit"
                 isLoading={isSubmitting}
-                disabled={Boolean(overlapWarning || formErrors.balance)}
+                disabled={Boolean(overlapWarning || formErrors.balance || realTimeErrors.balance || realTimeErrors.startDate)}
                 icon={CheckCircle2}
               >
                 Submit Leave Application

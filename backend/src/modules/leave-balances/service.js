@@ -1,7 +1,14 @@
 import { query } from '../../shared/database/index.js';
+import { accrualEngine } from './accrualEngine.js';
 
 export class BalanceService {
   async getBalancesForEmployee(employeeId, locationId) {
+    // 0. Get user joining date
+    const { rows: users } = await query(`
+      SELECT joining_date, created_at FROM users WHERE id = $1
+    `, [employeeId]);
+    const employeeJoinDate = users.length && users[0].joining_date ? users[0].joining_date : (users.length && users[0].created_at ? users[0].created_at : new Date());
+
     // 1. Get applicable policies
     const { rows: policies } = await query(`
       SELECT p.*, c.name as category_name, c.code as category_code, c.description as category_description
@@ -43,7 +50,7 @@ export class BalanceService {
       const openingBalance = policy.carry_forward_allowed ? Math.min(annualEntitlement * 0.3, carryForwardLimit) : 0;
       const accrued = policy.category_id === 'CAT-COMP' 
         ? compOffEarned 
-        : Math.round(monthlyAccrual * 8);
+        : Math.round(accrualEngine.calculateAccrued(policy, employeeJoinDate, new Date()));
 
       const encashed = 0;
       const rawClosing = openingBalance + accrued - used - pending - encashed;
